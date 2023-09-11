@@ -73,12 +73,17 @@ def start_game() -> int:
           if direction[HORIZONTAL] == 0:
             direction = [0,actual_velocity]
     
+    if food_eaten:
+      last_part = snake_tail.copy()
+    
     for i in range(len(snake)-1, 0, -1):
       snake[i][ROW] = snake[i-1][ROW]
       snake[i][COL] = snake[i-1][COL]
     
     if food_eaten:
-      snake.append( )
+      snake.append( last_part )
+      snake_tail = snake[-1]
+      food_eaten = False
     
     snake_head[ROW] += direction[VERTICAL]
     snake_head[COL] += direction[HORIZONTAL]
@@ -94,7 +99,7 @@ def start_game() -> int:
       )
     
     window.blit(
-      food_surface, matrix_to_real(food[COL], food[ROW])
+      food_surface, matrix_to_real(food[ROW], food[COL])
     )
     
     pg.display.update()
