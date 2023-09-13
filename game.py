@@ -5,6 +5,61 @@ from utils import *
 VERTICAL = ROW = 0
 HORIZONTAL = COL = 1
 
+
+class Snake():
+  def __init__(self) -> None:
+    self.body = [*SNAKE_START_CELL] # snake body
+    
+    self.head = self.body[0]
+    self.tail = self.body[-1]
+
+    self.surface = pg.Surface(CELL_SIZE)
+    self.surface.fill(SNAKE_BODY_COLOR)
+  
+  def add( self, position: list[int] ) -> None:
+    self.body.append( position )
+  
+  def draw( self, window: pg.Surface ) ->  None:
+    for row, col in self.body:
+      window.blit(
+        self.surface, matrix_to_real(row, col)
+      )
+
+
+class Foods():
+  def __init__(self) -> None:
+    self.foods_positions = []
+    
+    self.max_num_of_food = MAX_FOOD
+    
+    self.surface = pg.Surface(CELL_SIZE)
+    self.surface.fill(APPLE_COLOR)
+  
+  '''
+    Generate a food in a cell of the map that there is not occupied by
+    the snake
+  '''
+  def generate_food( self, snake_body: list[list[int]] ) -> None:
+    
+    while len(self.foods_positions) < self.max_num_of_food:
+    
+      found_cell = False
+      while not found_cell:
+        food_position = [randint(0, CELLS_PER_ROW-1), randint(0, CELLS_PER_ROW-1)]
+        if food_position not in snake_body:
+          found_cell = True
+          self.foods_positions.append(food_position)
+  
+  def remove( self, position: list[int] ) -> None:
+    self.foods_positions.remove( position )
+  
+  def draw( self, window: pg.Surface ) -> None:
+    for row, col in self.foods_positions:
+      window.blit(
+        self.surface, matrix_to_real(row, col)
+      )
+
+
 '''
   Finish the game
 '''
@@ -24,29 +79,29 @@ def start_game() -> int:
   clock = pg.time.Clock()
   window = pg.display.set_mode(SCREEN_SIZE)
   
-  snake = [*SNAKE_START_CELL] # snake body
-  snake_head = snake[0]
-  snake_tail = snake[-1]
+  '''
+    Generate snake and foods
+  '''
+  snake = Snake()
   
-  snake_surface = pg.Surface(CELL_SIZE)
-  snake_surface.fill(SNAKE_BODY_COLOR)
+  foods = Foods()
+  foods.generate_food( snake.body )
   
-  food = []
-  spawn_food( food, snake )
-  
-  food_surface = pg.Surface(CELL_SIZE)
-  food_surface.fill(APPLE_COLOR)
+  '''
+    Global states
+  '''
+  food_eaten = False
+  status_code = 0
+  score = 0
   
   '''
     if [0] is positive go down else go down
     if [1] is positive goto the right else goto the left
   '''
-  actual_velocity = 1
+  actual_velocity = START_VELOCITY
   direction = [0,actual_velocity]
   
-  food_eaten = False
   
-  status_code = 0
   run = True
   while run:
     for event in pg.event.get():
@@ -58,51 +113,61 @@ def start_game() -> int:
           status_code = 1
           run = False
         elif event.key == pg.K_UP:
-          if direction[VERTICAL] == 0:
+          if snake.head[VERTICAL] - 1 != snake.body[1][VERTICAL]:
             direction = [-actual_velocity,0]
           
         elif event.key == pg.K_DOWN:
-          if direction[VERTICAL] == 0:
+          if snake.head[VERTICAL] + 1 != snake.body[1][VERTICAL]:
             direction = [actual_velocity,0]
           
         elif event.key == pg.K_LEFT:
-          if direction[HORIZONTAL] == 0:
+          if snake.head[HORIZONTAL] - 1 != snake.body[1][HORIZONTAL]:
             direction = [0,-actual_velocity]
           
         elif event.key == pg.K_RIGHT:
-          if direction[HORIZONTAL] == 0:
+          if snake.head[HORIZONTAL] + 1 != snake.body[1][HORIZONTAL]:
             direction = [0,actual_velocity]
     
     if food_eaten:
-      last_part = snake_tail.copy()
+      tail_position = snake.tail.copy()
     
-    for i in range(len(snake)-1, 0, -1):
-      snake[i][ROW] = snake[i-1][ROW]
-      snake[i][COL] = snake[i-1][COL]
+    for i in range(len(snake.body)-1, 0, -1):
+      snake.body[i][ROW] = snake.body[i-1][ROW]
+      snake.body[i][COL] = snake.body[i-1][COL]
     
     if food_eaten:
-      snake.append( last_part )
-      snake_tail = snake[-1]
+      snake.add( tail_position )
+      score += 10
+      print(f'Score: {score} points!')
+      snake.tail = snake.body[-1]
       food_eaten = False
     
-    snake_head[ROW] += direction[VERTICAL]
-    snake_head[COL] += direction[HORIZONTAL]
+    snake.head[ROW] += direction[VERTICAL]
+    snake.head[COL] += direction[HORIZONTAL]
     
-    if snake_head == food:
+    '''
+      Check head collision
+    '''
+    # collision with his own body: game over
+    if snake.head in snake.body[1:]:
+      status_code = 2
+      run = False
+    
+    # collision with a food
+    if snake.head in foods.foods_positions:
       food_eaten = True
-      spawn_food( food, snake )
+      foods.remove( snake.head )
+      foods.generate_food( snake.body )
     
+    '''
+      Draw surfaces
+    '''
     window.fill(BACKGRAOUND_COLOR)
-    for body_i, body_j in snake:
-      window.blit(
-        snake_surface, matrix_to_real(body_i, body_j)
-      )
     
-    window.blit(
-      food_surface, matrix_to_real(food[ROW], food[COL])
-    )
+    snake.draw( window )
+    foods.draw( window )
     
     pg.display.update()
-    clock.tick(8)
+    clock.tick(5)
   
   return status_code
