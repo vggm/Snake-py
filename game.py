@@ -65,17 +65,21 @@ class Score():
     self.addition = SCORE_ADDITION
     
     self.font = pg.font.Font( size=FONT_SIZE )
+    self.score = self.font.render( f'Score: {self.points}', True, WHITE, None )
+    self.score_rec = self.score.get_rect()
+    self.score_rec.centery = SCORE_HEIGHT / 2
+    self.score_rec.centerx = SCORE_WIDTH / 2
+    
+    self.board = pg.Surface( SCORE_SIZE )
+    self.board.fill( BLACK )
     
   def add_score( self, points = SCORE_ADDITION ) -> None:
     self.points += points
   
   def draw( self, window: pg.Surface ) -> None:
-    score_font = self.font.render( f'Score: {self.points}', True, WHITE, None )
-    score_rec = score_font.get_rect()
-    score_rec.centery = SCORE_HEIGHT / 2
-    score_rec.centerx = SCORE_WIDTH / 2
-    
-    window.blit( score_font, score_rec )
+    self.score = self.font.render( f'Score: {self.points}', True, WHITE, None )
+    window.blit( self.board, SCORE_POSITION )
+    window.blit( self.score, self.score_rec )
 
 
 '''
@@ -96,9 +100,6 @@ def start_game() -> int:
   
   clock = pg.time.Clock()
   window = pg.display.set_mode(SCREEN_SIZE)
-  
-  score_board = pg.Surface( SCORE_SIZE )
-  score_board.fill( BLACK )
 
   '''
     Generate snake and foods
@@ -183,7 +184,6 @@ def start_game() -> int:
       Draw surfaces
     '''
     window.fill(BACKGRAOUND_COLOR)
-    window.blit( score_board, (0,0) )
     
     snake.draw( window )
     foods.draw( window )
