@@ -3,7 +3,6 @@
 '''
 
 from game_features import *
-from random import randint
 
 '''
   Convert coord of a matrix into coord of pixel in the window

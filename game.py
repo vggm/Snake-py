@@ -1,14 +1,17 @@
-import pygame as pg
+from random import randint
 from sys import exit
+import pygame as pg
 from utils import *
 
-VERTICAL = ROW = 0
+
+VERTICAL   = ROW = 0
 HORIZONTAL = COL = 1
 
 
 class Snake():
   def __init__(self) -> None:
-    self.body = [*SNAKE_START_CELL] # snake body
+
+    self.body = [ position.copy() for position in SNAKE_START_CELL ] # snake body
     
     self.head = self.body[0]
     self.tail = self.body[-1]
@@ -36,8 +39,10 @@ class Foods():
     self.surface.fill(APPLE_COLOR)
   
   '''
-    Generate a food in a cell of the map that there is not occupied by
-    the snake
+    Generate N foods in a cell of the map that there is not occupied by
+    the snake.
+    
+    N = MAX_FOOD - len(self.foods_positions)
   '''
   def generate_food( self, snake_body: list[list[int]] ) -> None:
     
@@ -59,12 +64,13 @@ class Foods():
         self.surface, matrix_to_real(row, col)
       )
 
+
 class Score():
   def __init__(self) -> None:
     self.points = 0
     self.addition = SCORE_ADDITION
     
-    self.font = pg.font.Font( size=FONT_SIZE )
+    self.font = pg.font.Font( SCORE_FONT, SCORE_FONT_SIZE )
     self.score = self.font.render( f'Score: {self.points}', True, WHITE, None )
     self.score_rec = self.score.get_rect()
     self.score_rec.centery = SCORE_HEIGHT / 2
@@ -82,114 +88,189 @@ class Score():
     window.blit( self.score, self.score_rec )
 
 
-'''
-  Finish the game
-'''
-def end_game() -> None:
-  pg.quit()
-  exit()
+class Game():
 
-'''
-  Main Game
+  def __init__( self ) -> None:
+    pg.init()
+    pg.display.set_caption('Snake-py')
+    
+    self.window = pg.display.set_mode(SCREEN_SIZE)
+    self.clock  = pg.time.Clock()
+    self.score: Score
   
-  return 1 if user wants to close the game
-'''
-def start_game() -> int:
-  pg.init()
-  pg.display.set_caption('Snake-py')
   
-  clock = pg.time.Clock()
-  window = pg.display.set_mode(SCREEN_SIZE)
+  '''
+    Main Game
+    
+    return True game over
+    return False if user wants to close the game
+  '''
+  def start( self ) -> bool:
 
-  '''
-    Generate snake and foods
-  '''
-  snake = Snake()
+    window = self.window
+    self.score = Score()
+    
+    '''
+      Generate snake and foods
+    '''
+    snake = Snake()
+    
+    foods = Foods()
+    foods.generate_food( snake.body )
+    
+    '''
+      Global states
+    '''
+    food_eaten = False
+    end_cause = False
   
-  foods = Foods()
-  foods.generate_food( snake.body )
-  
-  '''
-    Global states
-  '''
-  food_eaten = False
-  status_code = 0
-  score = Score()
-  
-  '''
-    if [0] is positive go down else go down
-    if [1] is positive goto the right else goto the left
-  '''
-  actual_velocity = START_VELOCITY
-  direction = [0,actual_velocity]
-  
-  
-  run = True
-  while run:
-    for event in pg.event.get():
-      if event.type == pg.QUIT:
-        status_code = 1
-        run = False
-      elif event.type == pg.KEYDOWN:
-        if event.key == pg.K_ESCAPE:
-          status_code = 1
+    
+    '''
+      if [0] is positive go down else go down
+      if [1] is positive goto the right else goto the left
+    '''
+    actual_velocity = START_VELOCITY
+    direction = [0,actual_velocity]
+    
+    
+    run = True
+    while run:
+      
+      if food_eaten:
+        tail_position = snake.tail.copy()
+      
+      for i in range(len(snake.body)-1, 0, -1):
+        snake.body[i][ROW] = snake.body[i-1][ROW]
+        snake.body[i][COL] = snake.body[i-1][COL]
+      
+      if food_eaten:
+        snake.add( tail_position )
+        snake.tail = snake.body[-1]
+        food_eaten = False
+      
+      snake.head[ROW] += direction[VERTICAL]
+      snake.head[COL] += direction[HORIZONTAL]
+      
+      '''
+        Check head collision
+      '''
+      # collision with his own body: game over
+      if snake.head in snake.body[1:]:
+        break
+      
+      # collision with walls: game over
+      if  CELLS_PER_ROW <= snake.head[ROW] or snake.head[ROW] < 0 or \
+          CELLS_PER_ROW <= snake.head[COL] or snake.head[COL] < 0:
+        break
+      
+      # collision with food
+      if snake.head in foods.foods_positions:
+        food_eaten = True
+        self.score.add_score()
+        foods.remove( position=snake.head )
+        foods.generate_food( snake.body )
+      
+      '''
+        Draw surfaces
+      '''
+      window.fill(BACKGRAOUND_COLOR)
+      
+      snake.draw( window )
+      foods.draw( window )
+      self.score.draw( window )
+      
+      pg.display.update()
+      self.clock.tick(5)
+      
+      '''
+        Listening events
+      '''
+      for event in pg.event.get():
+        if event.type == pg.QUIT:
+          end_cause = True
           run = False
-        elif event.key == pg.K_UP:
-          if snake.head[VERTICAL] - 1 != snake.body[1][VERTICAL]:
-            direction = [-actual_velocity,0]
-          
-        elif event.key == pg.K_DOWN:
-          if snake.head[VERTICAL] + 1 != snake.body[1][VERTICAL]:
-            direction = [actual_velocity,0]
-          
-        elif event.key == pg.K_LEFT:
-          if snake.head[HORIZONTAL] - 1 != snake.body[1][HORIZONTAL]:
-            direction = [0,-actual_velocity]
-          
-        elif event.key == pg.K_RIGHT:
-          if snake.head[HORIZONTAL] + 1 != snake.body[1][HORIZONTAL]:
-            direction = [0,actual_velocity]
+        elif event.type == pg.KEYDOWN:
+          if event.key == pg.K_ESCAPE:
+            end_cause = True
+            run = False
+          elif event.key == pg.K_UP:
+            if snake.head[VERTICAL] - 1 != snake.body[1][VERTICAL]:
+              direction = [-actual_velocity,0]
+            
+          elif event.key == pg.K_DOWN:
+            if snake.head[VERTICAL] + 1 != snake.body[1][VERTICAL]:
+              direction = [actual_velocity,0]
+            
+          elif event.key == pg.K_LEFT:
+            if snake.head[HORIZONTAL] - 1 != snake.body[1][HORIZONTAL]:
+              direction = [0,-actual_velocity]
+            
+          elif event.key == pg.K_RIGHT:
+            if snake.head[HORIZONTAL] + 1 != snake.body[1][HORIZONTAL]:
+              direction = [0,actual_velocity]
     
-    if food_eaten:
-      tail_position = snake.tail.copy()
-    
-    for i in range(len(snake.body)-1, 0, -1):
-      snake.body[i][ROW] = snake.body[i-1][ROW]
-      snake.body[i][COL] = snake.body[i-1][COL]
-    
-    if food_eaten:
-      snake.add( tail_position )
-      score.add_score()
-      snake.tail = snake.body[-1]
-      food_eaten = False
-    
-    snake.head[ROW] += direction[VERTICAL]
-    snake.head[COL] += direction[HORIZONTAL]
-    
-    '''
-      Check head collision
-    '''
-    # collision with his own body: game over
-    if snake.head in snake.body[1:]:
-      status_code = 2
-      run = False
-    
-    # collision with a food
-    if snake.head in foods.foods_positions:
-      food_eaten = True
-      foods.remove( snake.head )
-      foods.generate_food( snake.body )
-    
-    '''
-      Draw surfaces
-    '''
-    window.fill(BACKGRAOUND_COLOR)
-    
-    snake.draw( window )
-    foods.draw( window )
-    score.draw( window )
-    
-    pg.display.update()
-    clock.tick(5)
+    return end_cause
   
-  return status_code
+  
+  '''
+    Game Over Screen
+    
+    return True if the player wants to close the game
+    return False if the player wants to play again
+  '''
+  def game_over( self ) -> bool:
+    
+    window = self.window
+    
+    font = pg.font.Font( GAME_OVER_FONT, GAME_OVER_FONT_SIZE )
+    game_over_font = font.render( 'Game Over!!', True, RED, None )
+    game_over_font_rec = game_over_font.get_rect()
+    game_over_font_rec.centery = SCREEN_HEIGHT / 2 - 100
+    game_over_font_rec.centerx = SCREEN_WIDTH / 2
+    
+    font = pg.font.Font( SCORE_FONT, SCORE_FONT_SIZE - 10 )
+    score_font = font.render( f'Your Score is {self.score.points}', True, WHITE, None )
+    score_font_rec = score_font.get_rect()
+    score_font_rec.centery = SCREEN_HEIGHT / 2
+    score_font_rec.centerx = SCREEN_WIDTH / 2 
+    
+    font = pg.font.Font( SCORE_FONT, SCORE_FONT_SIZE - 30 )
+    restart_font = font.render( f'Press R to Restart!!', True, WHITE, None )
+    restart_font_rec = restart_font.get_rect()
+    restart_font_rec.centery = SCREEN_HEIGHT / 2 + 100
+    restart_font_rec.centerx = SCREEN_WIDTH / 2 
+    
+    user_option = True
+    showing_score = True
+    while showing_score:
+      window.fill(BLACK)
+      
+      window.blit( game_over_font, game_over_font_rec )
+      window.blit( restart_font, restart_font_rec )
+      window.blit( score_font, score_font_rec )
+      
+      pg.display.update()
+      self.clock.tick(60)
+      
+      for event in pg.event.get():
+          if event.type == pg.QUIT:
+            showing_score = False
+          elif event.type == pg.KEYDOWN:
+            if event.key == pg.K_ESCAPE:
+              showing_score = False
+            
+            if event.key == pg.K_r:
+              user_option = False
+              showing_score = False
+
+    return user_option
+  
+  
+  '''
+    Finish the game
+  '''
+  def end(self) -> None:
+    pg.quit()
+    exit()
+
+
