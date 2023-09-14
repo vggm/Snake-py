@@ -205,10 +205,6 @@ class Game():
       '''
         Check head collision
       '''
-      # collision with his own body: game over
-      if snake.head in snake.body[1:]:
-        run = False
-      
       # collision with walls: game over if solid_wall is true, otherwise: tp to the other side
       if  CELLS_PER_ROW <= snake.head[ROW] or snake.head[ROW] < 0 or \
           CELLS_PER_ROW <= snake.head[COL] or snake.head[COL] < 0:
@@ -219,6 +215,10 @@ class Game():
         else:
           snake.head[ROW] %= CELLS_PER_ROW
           snake.head[COL] %= CELLS_PER_ROW
+          
+      # collision with his own body: game over
+      if snake.head in snake.body[1:]:
+        run = False
       
       # collision with food
       if snake.head in foods.foods_positions:
