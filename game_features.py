@@ -2,6 +2,14 @@
   Game Features
 '''
 
+# GAME OPTIONS
+MAX_FOOD = 5
+ALEATORY_MAX_FOOD = True
+
+# if true, when the snake head hit the wall its game over
+# otherwise, the snake head will tp to the other side of the wall
+SOLID_WALL = False 
+
 # COLORS
 BLACK = ( 0, 0, 0 )
 WHITE = ( 255, 255, 255 )
@@ -27,6 +35,8 @@ SCREEN_WIDTH = 640
 SCREEN_HEIGHT = 640 + SCORE_HEIGHT
 SCREEN_SIZE = (SCREEN_WIDTH, SCREEN_HEIGHT)
 
+GAME_FPS = 60
+
 # CELLS
 CELLS_PER_ROW = 16
 CELL_HEIGHT = (SCREEN_HEIGHT - SCORE_HEIGHT) // CELLS_PER_ROW
@@ -39,11 +49,7 @@ APPLE_COLOR = RED
 
 SNAKE_START_CELL = [[7,3], [7,2]]
 
-START_VELOCITY = 1
-
-# FOOD
-MAX_FOOD = 1
-ALEATORY_FOOD = False
+START_SPEED = 1
 
 # FONT
 SCORE_FONT = None # PATH

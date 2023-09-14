@@ -33,8 +33,6 @@ class Foods():
   def __init__(self) -> None:
     self.foods_positions = []
     
-    self.max_num_of_food = MAX_FOOD
-    
     self.surface = pg.Surface(CELL_SIZE)
     self.surface.fill(APPLE_COLOR)
   
@@ -44,16 +42,26 @@ class Foods():
     
     N = MAX_FOOD - len(self.foods_positions)
   '''
-  def generate_food( self, snake_body: list[list[int]] ) -> None:
+  def generate_food( self, snake_body: list[list[int]] ) -> bool:
     
-    while len(self.foods_positions) < self.max_num_of_food:
+    if len( snake_body ) > CELLS_PER_ROW ** 2 - MAX_FOOD:
+      return False
+    
+    if ALEATORY_MAX_FOOD and len( self.foods_positions ) > 0:
+      return True
+    
+    n_food = randint(1, MAX_FOOD) if ALEATORY_MAX_FOOD else MAX_FOOD
+    
+    while len(self.foods_positions) < n_food:
     
       found_cell = False
       while not found_cell:
         food_position = [randint(0, CELLS_PER_ROW-1), randint(0, CELLS_PER_ROW-1)]
-        if food_position not in snake_body:
+        if food_position not in (snake_body + self.foods_positions):
           found_cell = True
           self.foods_positions.append(food_position)
+    
+    return True
   
   def remove( self, position: list[int] ) -> None:
     self.foods_positions.remove( position )
@@ -129,13 +137,56 @@ class Game():
       if [0] is positive go down else go down
       if [1] is positive goto the right else goto the left
     '''
-    actual_velocity = START_VELOCITY
-    direction = [0,actual_velocity]
+    actual_speed = START_SPEED
+    direction = [0,actual_speed]
     
     
     run = True
     while run:
       
+      '''
+        Draw surfaces
+      '''
+      window.fill(BACKGRAOUND_COLOR)
+      
+      snake.draw( window )
+      foods.draw( window )
+      self.score.draw( window )
+      
+      pg.display.update()
+      self.clock.tick(8)
+      
+      '''
+        Listening events
+      '''
+      for event in pg.event.get():
+        if event.type == pg.QUIT:
+          end_cause = True
+          run = False
+        elif event.type == pg.KEYDOWN:
+          if event.key == pg.K_ESCAPE:
+            end_cause = True
+            run = False
+          elif event.key == pg.K_UP:
+            if snake.head[VERTICAL] - 1 != snake.body[1][VERTICAL]:
+              direction = [-actual_speed,0]
+            
+          elif event.key == pg.K_DOWN:
+            if snake.head[VERTICAL] + 1 != snake.body[1][VERTICAL]:
+              direction = [actual_speed,0]
+            
+          elif event.key == pg.K_LEFT:
+            if snake.head[HORIZONTAL] - 1 != snake.body[1][HORIZONTAL]:
+              direction = [0,-actual_speed]
+            
+          elif event.key == pg.K_RIGHT:
+            if snake.head[HORIZONTAL] + 1 != snake.body[1][HORIZONTAL]:
+              direction = [0,actual_speed]
+    
+
+      '''
+        Game Logic
+      '''
       if food_eaten:
         tail_position = snake.tail.copy()
       
@@ -156,58 +207,26 @@ class Game():
       '''
       # collision with his own body: game over
       if snake.head in snake.body[1:]:
-        break
+        run = False
       
-      # collision with walls: game over
+      # collision with walls: game over if solid_wall is true, otherwise: tp to the other side
       if  CELLS_PER_ROW <= snake.head[ROW] or snake.head[ROW] < 0 or \
           CELLS_PER_ROW <= snake.head[COL] or snake.head[COL] < 0:
-        break
+        
+        if SOLID_WALL:
+          run = False
+        
+        else:
+          snake.head[ROW] %= CELLS_PER_ROW
+          snake.head[COL] %= CELLS_PER_ROW
       
       # collision with food
       if snake.head in foods.foods_positions:
         food_eaten = True
         self.score.add_score()
         foods.remove( position=snake.head )
-        foods.generate_food( snake.body )
-      
-      '''
-        Draw surfaces
-      '''
-      window.fill(BACKGRAOUND_COLOR)
-      
-      snake.draw( window )
-      foods.draw( window )
-      self.score.draw( window )
-      
-      pg.display.update()
-      self.clock.tick(5)
-      
-      '''
-        Listening events
-      '''
-      for event in pg.event.get():
-        if event.type == pg.QUIT:
-          end_cause = True
+        if not foods.generate_food( snake.body ):
           run = False
-        elif event.type == pg.KEYDOWN:
-          if event.key == pg.K_ESCAPE:
-            end_cause = True
-            run = False
-          elif event.key == pg.K_UP:
-            if snake.head[VERTICAL] - 1 != snake.body[1][VERTICAL]:
-              direction = [-actual_velocity,0]
-            
-          elif event.key == pg.K_DOWN:
-            if snake.head[VERTICAL] + 1 != snake.body[1][VERTICAL]:
-              direction = [actual_velocity,0]
-            
-          elif event.key == pg.K_LEFT:
-            if snake.head[HORIZONTAL] - 1 != snake.body[1][HORIZONTAL]:
-              direction = [0,-actual_velocity]
-            
-          elif event.key == pg.K_RIGHT:
-            if snake.head[HORIZONTAL] + 1 != snake.body[1][HORIZONTAL]:
-              direction = [0,actual_velocity]
     
     return end_cause
   
@@ -250,7 +269,7 @@ class Game():
       window.blit( score_font, score_font_rec )
       
       pg.display.update()
-      self.clock.tick(60)
+      self.clock.tick(GAME_FPS)
       
       for event in pg.event.get():
           if event.type == pg.QUIT:
