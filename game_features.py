@@ -1,18 +1,6 @@
 '''
-  Game Features
+  Game Features Constants
 '''
-
-class GameFeatures():
-  def __init__(self) -> None:
-    pass
-
-# GAME OPTIONS
-MAX_FOOD = 5
-ALEATORY_MAX_FOOD = True
-
-# if true, when the snake head hit the wall its game over
-# otherwise, the snake head will tp to the other side of the wall
-SOLID_WALL = False 
 
 # COLORS
 BLACK = ( 0, 0, 0 )
@@ -24,28 +12,8 @@ BLUE  = ( 0, 0, 255 )
 
 LIGHT_GREEN = ( 123, 212, 180, 83 )
 
-# SCORE MENU
-SCORE_HEIGHT = 80
-SCORE_WIDTH = 640
-SCORE_SIZE = (SCORE_WIDTH, SCORE_HEIGHT)
-SCORE_POSITION = (0,0)
-SCORE_BACKGROUND_COLOR = BLACK
-
-# SCORE
-SCORE_ADDITION = 1
-
-# SCREEN
-SCREEN_WIDTH = 640
-SCREEN_HEIGHT = 640 + SCORE_HEIGHT
-SCREEN_SIZE = (SCREEN_WIDTH, SCREEN_HEIGHT)
 
 GAME_FPS = 60
-
-# CELLS
-CELLS_PER_ROW = 16
-CELL_HEIGHT = (SCREEN_HEIGHT - SCORE_HEIGHT) // CELLS_PER_ROW
-CELL_WIDTH = SCREEN_WIDTH // CELLS_PER_ROW
-CELL_SIZE = (CELL_WIDTH, CELL_HEIGHT)
 
 # SNAKE
 SNAKE_BODY_COLOR = GREEN
