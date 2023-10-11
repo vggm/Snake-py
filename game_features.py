@@ -2,6 +2,10 @@
   Game Features
 '''
 
+class GameFeatures():
+  def __init__(self) -> None:
+    pass
+
 # GAME OPTIONS
 MAX_FOOD = 5
 ALEATORY_MAX_FOOD = True

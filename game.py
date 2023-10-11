@@ -1,3 +1,7 @@
+''' 
+  SnakePy Game
+'''
+
 from random import randint
 from sys import exit
 import pygame as pg
@@ -9,7 +13,8 @@ HORIZONTAL = COL = 1
 
 
 class Snake():
-  def __init__(self) -> None:
+  def __init__(self, window: pg.Surface) -> None:
+    self.window = window
 
     self.body = [ position.copy() for position in SNAKE_START_CELL ] # snake body
     
@@ -22,15 +27,17 @@ class Snake():
   def add( self, position: list[int] ) -> None:
     self.body.append( position )
   
-  def draw( self, window: pg.Surface ) ->  None:
+  def draw( self ) ->  None:
     for row, col in self.body:
-      window.blit(
+      self.window.blit(
         self.surface, matrix_to_real(row, col)
       )
 
 
 class Foods():
-  def __init__(self) -> None:
+  def __init__(self, window: pg.Surface) -> None:
+    self.window = window
+    
     self.foods_positions = []
     
     self.surface = pg.Surface(CELL_SIZE)
@@ -66,15 +73,17 @@ class Foods():
   def remove( self, position: list[int] ) -> None:
     self.foods_positions.remove( position )
   
-  def draw( self, window: pg.Surface ) -> None:
+  def draw( self ) -> None:
     for row, col in self.foods_positions:
-      window.blit(
+      self.window.blit(
         self.surface, matrix_to_real(row, col)
       )
 
 
 class Score():
-  def __init__(self) -> None:
+  def __init__(self, window: pg.Surface) -> None:
+    self.window = window
+    
     self.points = 0
     self.addition = SCORE_ADDITION
     
@@ -90,10 +99,10 @@ class Score():
   def add_score( self, points = SCORE_ADDITION ) -> None:
     self.points += points
   
-  def draw( self, window: pg.Surface ) -> None:
+  def draw( self ) -> None:
     self.score = self.font.render( f'Score: {self.points}', True, WHITE, None )
-    window.blit( self.board, SCORE_POSITION )
-    window.blit( self.score, self.score_rec )
+    self.window.blit( self.board, SCORE_POSITION )
+    self.window.blit( self.score, self.score_rec )
 
 
 class Game():
@@ -116,14 +125,14 @@ class Game():
   def start( self ) -> bool:
 
     window = self.window
-    self.score = Score()
+    self.score = Score(window)
     
     '''
       Generate snake and foods
     '''
-    snake = Snake()
+    snake = Snake(window)
     
-    foods = Foods()
+    foods = Foods(window)
     foods.generate_food( snake.body )
     
     '''
@@ -149,9 +158,9 @@ class Game():
       '''
       window.fill(BACKGRAOUND_COLOR)
       
-      snake.draw( window )
-      foods.draw( window )
-      self.score.draw( window )
+      snake.draw()
+      foods.draw()
+      self.score.draw()
       
       pg.display.update()
       self.clock.tick(8)
