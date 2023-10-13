@@ -2,7 +2,9 @@
   SnakePy Game
 '''
 
+from configuration import configuration as conf
 from random import randint
+from colors import Color
 from sys import exit
 import pygame as pg
 from utils import *
@@ -16,13 +18,13 @@ class Snake():
   def __init__(self, window: pg.Surface) -> None:
     self.window = window
 
-    self.body = [ position.copy() for position in SNAKE_START_CELL ] # snake body
+    self.body = [ position.copy() for position in conf.SNAKE_START_CELL ] # snake body
     
     self.head = self.body[0]
     self.tail = self.body[-1]
 
-    self.surface = pg.Surface(CELL_SIZE)
-    self.surface.fill(SNAKE_BODY_COLOR)
+    self.surface = pg.Surface(conf.CELL_SIZE)
+    self.surface.fill(conf.SNAKE_BODY_COLOR)
   
   def add( self, position: list[int] ) -> None:
     self.body.append( position )
@@ -40,8 +42,8 @@ class Foods():
     
     self.foods_positions = []
     
-    self.surface = pg.Surface(CELL_SIZE)
-    self.surface.fill(APPLE_COLOR)
+    self.surface = pg.Surface(conf.CELL_SIZE)
+    self.surface.fill(conf.APPLE_COLOR)
   
   '''
     Generate N foods in a cell of the map that there is not occupied by
@@ -51,19 +53,19 @@ class Foods():
   '''
   def generate_food( self, snake_body: list[list[int]] ) -> bool:
     
-    if len( snake_body ) > CELLS_PER_ROW ** 2 - MAX_FOOD:
+    if len( snake_body ) > conf.CELLS_PER_ROW ** 2 - conf.MAX_FOOD:
       return False
     
-    if ALEATORY_MAX_FOOD and len( self.foods_positions ) > 0:
+    if conf.ALEATORY_MAX_FOOD and len( self.foods_positions ) > 0:
       return True
     
-    n_food = randint(1, MAX_FOOD) if ALEATORY_MAX_FOOD else MAX_FOOD
+    n_food = randint(1, conf.MAX_FOOD) if conf.ALEATORY_MAX_FOOD else conf.MAX_FOOD
     
     while len(self.foods_positions) < n_food:
     
       found_cell = False
       while not found_cell:
-        food_position = [randint(0, CELLS_PER_ROW-1), randint(0, CELLS_PER_ROW-1)]
+        food_position = [randint(0, conf.CELLS_PER_ROW-1), randint(0, conf.CELLS_PER_ROW-1)]
         if food_position not in (snake_body + self.foods_positions):
           found_cell = True
           self.foods_positions.append(food_position)
@@ -85,23 +87,23 @@ class Score():
     self.window = window
     
     self.points = 0
-    self.addition = SCORE_ADDITION
+    self.addition = conf.SCORE_ADDITION
     
-    self.font = pg.font.Font( SCORE_FONT, SCORE_FONT_SIZE )
-    self.score = self.font.render( f'Score: {self.points}', True, WHITE, None )
+    self.font = pg.font.Font( conf.SCORE_FONT, conf.SCORE_FONT_SIZE )
+    self.score = self.font.render( f'Score: {self.points}', True, Color.WHITE.value, None )
     self.score_rec = self.score.get_rect()
-    self.score_rec.centery = SCORE_HEIGHT / 2
-    self.score_rec.centerx = SCORE_WIDTH / 2
+    self.score_rec.centery = conf.score_height / 2
+    self.score_rec.centerx = conf.score_width / 2
     
-    self.board = pg.Surface( SCORE_SIZE )
-    self.board.fill( BLACK )
+    self.board = pg.Surface( conf.SCORE_SIZE )
+    self.board.fill( Color.BLACK.value )
     
-  def add_score( self, points = SCORE_ADDITION ) -> None:
+  def add_score( self, points = conf.SCORE_ADDITION ) -> None:
     self.points += points
   
   def draw( self ) -> None:
-    self.score = self.font.render( f'Score: {self.points}', True, WHITE, None )
-    self.window.blit( self.board, SCORE_POSITION )
+    self.score = self.font.render( f'Score: {self.points}', True, Color.WHITE.value, None )
+    self.window.blit( self.board, conf.SCORE_POSITION )
     self.window.blit( self.score, self.score_rec )
 
 
@@ -111,7 +113,7 @@ class Game():
     pg.init()
     pg.display.set_caption('Snake-py')
     
-    self.window = pg.display.set_mode(SCREEN_SIZE)
+    self.window = pg.display.set_mode(conf.SCREEN_SIZE)
     self.clock  = pg.time.Clock()
     self.score: Score
   
@@ -146,7 +148,7 @@ class Game():
       if [0] is positive go down else go down
       if [1] is positive goto the right else goto the left
     '''
-    actual_speed = START_SPEED
+    actual_speed = conf.START_SPEED
     direction = [0,actual_speed]
     
     
@@ -156,7 +158,7 @@ class Game():
       '''
         Draw surfaces
       '''
-      window.fill(BACKGRAOUND_COLOR)
+      window.fill(conf.BACKGRAOUND_COLOR)
       
       snake.draw()
       foods.draw()
@@ -215,15 +217,15 @@ class Game():
         Check head collision
       '''
       # collision with walls: game over if solid_wall is true, otherwise: tp to the other side
-      if  CELLS_PER_ROW <= snake.head[ROW] or snake.head[ROW] < 0 or \
-          CELLS_PER_ROW <= snake.head[COL] or snake.head[COL] < 0:
+      if  conf.CELLS_PER_ROW <= snake.head[ROW] or snake.head[ROW] < 0 or \
+          conf.CELLS_PER_ROW <= snake.head[COL] or snake.head[COL] < 0:
         
-        if SOLID_WALL:
+        if conf.solid_wall:
           run = False
         
         else:
-          snake.head[ROW] %= CELLS_PER_ROW
-          snake.head[COL] %= CELLS_PER_ROW
+          snake.head[ROW] %= conf.CELLS_PER_ROW
+          snake.head[COL] %= conf.CELLS_PER_ROW
           
       # collision with his own body: game over
       if snake.head in snake.body[1:]:
@@ -250,35 +252,35 @@ class Game():
     
     window = self.window
     
-    font = pg.font.Font( GAME_OVER_FONT, GAME_OVER_FONT_SIZE )
-    game_over_font = font.render( 'Game Over!!', True, RED, None )
+    font = pg.font.Font( conf.GAME_OVER_FONT, conf.GAME_OVER_FONT_SIZE )
+    game_over_font = font.render( 'Game Over!!', True, Color.RED.value, None )
     game_over_font_rec = game_over_font.get_rect()
-    game_over_font_rec.centery = SCREEN_HEIGHT / 2 - 100
-    game_over_font_rec.centerx = SCREEN_WIDTH / 2
+    game_over_font_rec.centery = conf.screen_height / 2 - 100
+    game_over_font_rec.centerx = conf.screen_width / 2
     
-    font = pg.font.Font( SCORE_FONT, SCORE_FONT_SIZE - 10 )
-    score_font = font.render( f'Your Score is {self.score.points}', True, WHITE, None )
+    font = pg.font.Font( conf.SCORE_FONT, conf.SCORE_FONT_SIZE - 10 )
+    score_font = font.render( f'Your Score is {self.score.points}', True, Color.WHITE.value, None )
     score_font_rec = score_font.get_rect()
-    score_font_rec.centery = SCREEN_HEIGHT / 2
-    score_font_rec.centerx = SCREEN_WIDTH / 2 
+    score_font_rec.centery = conf.screen_height / 2
+    score_font_rec.centerx = conf.screen_width / 2 
     
-    font = pg.font.Font( SCORE_FONT, SCORE_FONT_SIZE - 30 )
-    restart_font = font.render( f'Press R to Restart!!', True, WHITE, None )
+    font = pg.font.Font( conf.SCORE_FONT, conf.SCORE_FONT_SIZE - 30 )
+    restart_font = font.render( f'Press R to Restart!!', True, Color.WHITE.value, None )
     restart_font_rec = restart_font.get_rect()
-    restart_font_rec.centery = SCREEN_HEIGHT / 2 + 100
-    restart_font_rec.centerx = SCREEN_WIDTH / 2 
+    restart_font_rec.centery = conf.screen_height / 2 + 100
+    restart_font_rec.centerx = conf.screen_width / 2 
     
     user_option = True
     showing_score = True
     while showing_score:
-      window.fill(BLACK)
+      window.fill(Color.BLACK.value)
       
       window.blit( game_over_font, game_over_font_rec )
       window.blit( restart_font, restart_font_rec )
       window.blit( score_font, score_font_rec )
       
       pg.display.update()
-      self.clock.tick(GAME_FPS)
+      self.clock.tick(conf.GAME_FPS)
       
       for event in pg.event.get():
           if event.type == pg.QUIT:
