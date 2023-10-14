@@ -4,6 +4,20 @@
 
 from colors import Color
 
+
+class Menu_Configuration():
+  def __init__(self) -> None:
+    
+    # MENU
+    self.menu_height = 400
+    self.menu_width = 400
+    self.MENU_SIZE = ( self.menu_width, self.menu_height )
+    
+    self.MENU_BACKGROUND = Color.LIGHT_GREEN.value
+    
+    self.START_BUTTON_FONT = None
+
+
 class Configuration():
   def __init__(self) -> None:
     # GAME OPTIONS
@@ -19,7 +33,7 @@ class Configuration():
     # SCORE
     self.SCORE_ADDITION = 1  
     
-    # SCORE MENU
+    # SCORE TOPBAR
     self.score_height = 80
     self.score_width = 640
     self.SCORE_SIZE = (self.score_width, self.score_height)
@@ -57,3 +71,4 @@ class Configuration():
 
 
 configuration = Configuration()
+menu_configuration = Menu_Configuration()

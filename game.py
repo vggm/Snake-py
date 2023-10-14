@@ -142,14 +142,14 @@ class Game():
     '''
     food_eaten = False
     end_cause = False
-  
+
     
     '''
       if [0] is positive go down else go down
       if [1] is positive goto the right else goto the left
     '''
     actual_speed = conf.START_SPEED
-    direction = [0,actual_speed]
+    direction = [0,0]
     
     
     run = True
@@ -165,7 +165,7 @@ class Game():
       self.score.draw()
       
       pg.display.update()
-      self.clock.tick(8)
+      self.clock.tick(conf.GAME_FPS)
       
       '''
         Listening events
@@ -201,15 +201,22 @@ class Game():
       if food_eaten:
         tail_position = snake.tail.copy()
       
-      for i in range(len(snake.body)-1, 0, -1):
-        snake.body[i][ROW] = snake.body[i-1][ROW]
-        snake.body[i][COL] = snake.body[i-1][COL]
+      '''
+        Move the snake cells to simulate the movement.
+        At the beginning, the snake doesnt move until the player
+          make a move 
+      '''
+      if direction[VERTICAL] + direction[HORIZONTAL] != 0:
+        for i in range(len(snake.body)-1, 0, -1):
+          snake.body[i][ROW] = snake.body[i-1][ROW]
+          snake.body[i][COL] = snake.body[i-1][COL]
       
       if food_eaten:
         snake.add( tail_position )
         snake.tail = snake.body[-1]
         food_eaten = False
       
+      ''' Snake movement '''
       snake.head[ROW] += direction[VERTICAL]
       snake.head[COL] += direction[HORIZONTAL]
       
@@ -296,11 +303,11 @@ class Game():
     return user_option
   
   
-  '''
-    Finish the game
-  '''
-  def end(self) -> None:
-    pg.quit()
-    exit()
+'''
+  Finish the game
+'''
+def end_game() -> None:
+  pg.quit()
+  exit()
 
 
