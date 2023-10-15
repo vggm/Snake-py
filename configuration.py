@@ -3,9 +3,17 @@
 '''
 
 from colors import Color
+from enum import Enum
 
 
-class Menu_Configuration():
+class WindowSize(Enum):
+  
+  SMALL  = (480,560)
+  MEDIUM = (640,720)
+  LARGE  = (960,1040)
+
+
+class MenuConfiguration():
   def __init__(self) -> None:
     
     # MENU
@@ -16,6 +24,10 @@ class Menu_Configuration():
     self.MENU_BACKGROUND = Color.LIGHT_GREEN.value
     
     self.START_BUTTON_FONT = None
+    
+    self.button_height = 50
+    self.button_width = 50
+    self.BUTTON_SIZE = ( self.button_width, self.button_height )
 
 
 class Configuration():
@@ -33,16 +45,20 @@ class Configuration():
     # SCORE
     self.SCORE_ADDITION = 1  
     
+    # WINDOW
+    self.window_height = 560
+    self.window_width = 480
+    
     # SCORE TOPBAR
-    self.score_height = 80
-    self.score_width = 640
+    self.score_height = self.window_height - self.window_width
+    self.score_width = self.window_width
     self.SCORE_SIZE = (self.score_width, self.score_height)
     self.SCORE_POSITION = (0,0)
     self.SCORE_BACKGROUND_COLOR = Color.BLACK.value
     
     # SCREEN
-    self.screen_width = 640
-    self.screen_height = 640 + self.score_height
+    self.screen_width = self.window_width
+    self.screen_height = self.window_height
     self.SCREEN_SIZE = (self.screen_width, self.screen_height)
     
     # CELLS
@@ -68,7 +84,16 @@ class Configuration():
 
     # BACKGROUND
     self.BACKGRAOUND_COLOR = Color.LIGHT_GREEN.value
+    
+  def set_small_size(self):
+    self.window_height, self.window_width = WindowSize.SMALL.value
+    
+  def set_medium_size(self):
+    self.window_height, self.window_width = WindowSize.MEDIUM.value
+  
+  def set_large_size(self):
+    self.window_height, self.window_width = WindowSize.LARGE.value
 
 
 configuration = Configuration()
-menu_configuration = Menu_Configuration()
+menu_configuration = MenuConfiguration()

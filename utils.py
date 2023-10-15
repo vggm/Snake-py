@@ -2,7 +2,9 @@
   Util functions
 '''
 
-from configuration import configuration as conf
+from configuration \
+  import configuration as conf, \
+         menu_configuration as mconf
 import pygame as pg
 
 '''
@@ -13,8 +15,10 @@ def matrix_to_real ( i: int, j: int ) -> tuple[int]:
          i * ( ( conf.screen_height - conf.score_height ) // conf.CELLS_PER_ROW ) \
          + conf.score_height
 
-
-def get_image(url) -> pg.Surface:
+'''
+  Return a Surface from a sprite's path
+'''
+def get_image( url: str, img_size = conf.CELL_SIZE ) -> pg.Surface:
   img = pg.image.load(url)
-  return pg.transform.scale(img, conf.CELL_SIZE)
+  return pg.transform.scale(img, img_size)
       
