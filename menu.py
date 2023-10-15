@@ -32,6 +32,9 @@ class StartButton( InteractiveObject ):
     return self.start_rect.left <= x < self.start_rect.right and \
            self.start_rect.top <= y < self.start_rect.bottom
   
+  def set_conf( self ) -> None:
+    pass
+  
   
 class PortalWallButton( InteractiveObject ):
   
@@ -39,13 +42,20 @@ class PortalWallButton( InteractiveObject ):
     
     self.portal = get_image('sprites/portal_sprite.png', mconf.BUTTON_SIZE)
     self.portal_rect = self.portal.get_rect()
-    self.portal_rect.topleft = [10,10]
+    self.portal_rect.topleft = ( 10, 10 )
+    
+    self.background = pg.surface.Surface( mconf.BUTTON_SIZE )
+    self.background.fill(Color.RED.value)
+    self.background_rect = self.background.get_rect()
+    self.background_rect.topleft = ( 10, 10 )
     
     self.selected = False
     
     super().__init__( window )
     
   def draw(self) -> None:
+    if self.selected:
+      self.window.blit(self.background, self.background_rect)
     self.window.blit(self.portal, self.portal_rect)
   
   def check_collision(self, coord: tuple[int]) -> bool:
@@ -54,7 +64,7 @@ class PortalWallButton( InteractiveObject ):
            self.portal_rect.top <= y < self.portal_rect.bottom
   
   def set_conf( self ) -> None:
-    conf.solid_wall = self.selected
+    conf.solid_wall = not self.selected
   
   
 '''
@@ -98,6 +108,7 @@ def Menu():
       elif event.type == pg.MOUSEBUTTONUP: # Mouse click
         mouse_pos = pg.mouse.get_pos()
         if start_button.check_collision(mouse_pos):
+          portal_button.set_conf()
           start_menu = False
         elif portal_button.check_collision(mouse_pos):
           portal_button.selected = not portal_button.selected
