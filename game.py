@@ -222,10 +222,6 @@ class Game():
         
         else:
           snake.teleport()
-          
-      # collision with his own body: game over
-      if snake.head in snake.body[1:]:
-        run = False
       
       # collision with food
       if snake.head in foods.foods_positions:
@@ -235,7 +231,6 @@ class Game():
         if not foods.generate_food( snake.body ):
           run = False
       
-            
       '''
         Delete last cell from snake body to simulate movement,
           if the snake has eaten a food, doesnt have to delete the last cell
@@ -246,6 +241,10 @@ class Game():
           food_eaten = False 
         else:
           snake.delete_last()
+      
+      # collision with his own body: game over
+      if snake.head in snake.body[1:]:
+        run = False
     
     return end_cause
   

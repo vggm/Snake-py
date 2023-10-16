@@ -4,10 +4,11 @@
 
 import pygame as pg
 from pygame import Surface
-from interactive_object import InteractiveObject
+from interactive_object import InteractiveObject, MultipleInteractiveObject
 from configuration \
   import ( configuration as conf, 
-           menu_configuration as mconf )
+           menu_configuration as mconf,
+           WindowSize as win_size )
 from utils import get_image, check_rect_collision
 from colors import Color
 
@@ -31,11 +32,8 @@ class StartButton( InteractiveObject ):
   def check_collision( self, coord: tuple[int] ) -> bool:
     return check_rect_collision( coord, self.start_rect )
   
-  def set_conf( self ) -> None:
-    pass
   
-  
-class PortalWallButton( InteractiveObject ):
+class PortalWallButton( MultipleInteractiveObject ):
   
   def __portal_button_collision(self, coord: tuple[int]):
     return check_rect_collision( coord, self.portal_rect )
@@ -51,7 +49,7 @@ class PortalWallButton( InteractiveObject ):
     
     self.wall = get_image('sprites/wall_sprite.png', mconf.BUTTON_SIZE)
     self.wall_rect = self.wall.get_rect()
-    self.wall_rect.topleft = ( self.wall_rect.topright[0] + 10, 10 )
+    self.wall_rect.topleft = ( self.wall_rect.right + 10, 10 )
     
     self.background = pg.surface.Surface( mconf.BUTTON_SIZE )
     self.background.fill(Color.BLUE.value)
@@ -86,32 +84,33 @@ class PortalWallButton( InteractiveObject ):
     conf.solid_wall = self.wall_selected
     
     
-class NumOfFood( InteractiveObject ):
+class NumOfFood( MultipleInteractiveObject ):
   
   def __init__(self, window: Surface) -> None:
     
-    self.buttons = []
+    self.buttons : list[tuple[pg.Surface, pg.Rect]] = []
     
-    self.SPRITE = 0
-    self.RECT = 1
+    SPRITE = 0
+    RECT = 1
     self.RANDOM_MODE = 5
     
-    ''' Its 10 + conf.CELL_HEIGHT + 10 because it needs to be down from the first button that is in (10,10) '''
-    topleft = [10, 10 + conf.CELL_HEIGHT + 20]
+    ''' Its 10 + mconf.button_height + 10 because it needs to be down from the first button that is in (10,10) '''
+    topleft = [10, 10 + mconf.button_height + 20]
     
     ''' Create 5 buttons, Food could spawn from 1 to 5 as max '''
     for i in range(1,5+1):
       
       button = get_image(f'sprites/sprite_{i}.png', mconf.BUTTON_SIZE)
       button_rect = button.get_rect()
-      button_rect.topleft = ( topleft[0] + (i-1)*(conf.CELL_WIDTH + 10) , topleft[1])
+      button_rect.topleft = ( topleft[0] + (i-1)*(mconf.button_width + 10) , topleft[1] )
       
       self.buttons.append( (button, button_rect) )
     
     ''' Or aleatory '''
     aleatory_button = get_image('sprites/game_die.png', mconf.BUTTON_SIZE)
     aleatory_button_rect = aleatory_button.get_rect()
-    aleatory_button_rect.topleft = ( self.buttons[-1][self.RECT].topright[0] + 10, topleft[1] )
+    last_button = self.buttons[-1][RECT]
+    aleatory_button_rect.topleft = ( last_button.right + 10, topleft[1] )
     
     self.buttons.append( (aleatory_button, aleatory_button_rect) )
     
@@ -151,6 +150,58 @@ class NumOfFood( InteractiveObject ):
     
     conf.ALEATORY_MAX_FOOD = False
     conf.MAX_FOOD = self.selected + 1
+
+
+class WindowSizeOptions( MultipleInteractiveObject ):
+  def __init__(self, window: Surface) -> None:
+    
+    ''' 
+      Its 2*(10 + mconf.button_height) + 10 because it needs to be down from the second button 
+        that is in (10,20 + mconf.button_height + 10) 
+    '''
+    topleft = [10, 2*(20 + mconf.button_height) + 10]
+    
+    self.buttons : list[tuple[pg.Surface, pg.Rect]] = []
+    
+    self.sprite_names = [ str(attribute).split('.')[1].lower() for attribute in list(win_size) ]
+    
+    for i, sprite_name in enumerate(self.sprite_names):
+      
+      button = get_image(f'sprites/{sprite_name}_sprite.png', mconf.BUTTON_SIZE)
+      rect = button.get_rect()
+      rect.topleft = [ topleft[0] + (i)*(mconf.button_width + 10) , topleft[1] ]
+      
+      self.buttons.append( ( button, rect ) )
+    
+    self.background = pg.surface.Surface( mconf.BUTTON_SIZE )
+    self.background.fill(Color.BLUE.value)
+    self.background_rect = self.background.get_rect()
+    
+    self.selected = 0    
+    
+    super().__init__(window)
+  
+  def check_collision(self, coord: tuple[int]) -> bool:
+    return any( check_rect_collision( coord, rect ) 
+                  for _, rect in self.buttons )
+  
+  def click_action(self, coord: tuple[int]) -> None:
+    for index, (_, rect) in enumerate(self.buttons):
+      if check_rect_collision(coord, rect):
+        self.selected = index
+        return
+  
+  def set_conf(self) -> None:
+    option_selected = self.sprite_names[self.selected]
+    conf.set_window_size( option_selected )
+    
+  def draw(self) -> None:
+    for i, (sprite, rect) in enumerate(self.buttons):
+      if i == self.selected:
+        self.background_rect.topleft = rect.topleft
+        self.window.blit(self.background, self.background_rect)
+      
+      self.window.blit(sprite, rect)
   
   
 '''
@@ -161,6 +212,7 @@ def Menu():
   
   pg.init()
   pg.display.set_caption('Snake-py')
+  clock = pg.time.Clock()
   
   window = pg.display.set_mode(mconf.MENU_SIZE)
   
@@ -170,6 +222,7 @@ def Menu():
   start_button = StartButton( window )
   portal_wall_button = PortalWallButton( window )
   num_of_food = NumOfFood( window )
+  window_size_options = WindowSizeOptions( window )
   
   
   start_menu = True
@@ -182,6 +235,7 @@ def Menu():
     start_button.draw()
     portal_wall_button.draw()
     num_of_food.draw()
+    window_size_options.draw()
     
     pg.display.update()
       
@@ -195,14 +249,23 @@ def Menu():
           end_cause = False
       elif event.type == pg.MOUSEBUTTONUP: # Mouse click
         mouse_pos = pg.mouse.get_pos()
+        
         if start_button.check_collision(mouse_pos): # click on start button
           portal_wall_button.set_conf()
           num_of_food.set_conf()
+          window_size_options.set_conf()
           start_menu = False
+          
         elif portal_wall_button.check_collision(mouse_pos): # click on portal or wall button
           portal_wall_button.click_action(mouse_pos)
+          
         elif num_of_food.check_collision(mouse_pos): # click on max num of food
           num_of_food.click_action(mouse_pos)
+          
+        elif window_size_options.check_collision(mouse_pos): # click on window size
+          window_size_options.click_action(mouse_pos)
+    
+    clock.tick(60)
     
   return end_cause
     
