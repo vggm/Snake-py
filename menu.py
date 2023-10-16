@@ -150,7 +150,7 @@ class NumOfFood( InteractiveObject ):
       return
     
     conf.ALEATORY_MAX_FOOD = False
-    conf.MAX_FOOD = self.selected + 1
+    conf.MAX_FOOD = self.selected + 1 # selected starts at 0!!
   
   
 '''
