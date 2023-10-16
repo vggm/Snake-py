@@ -21,4 +21,13 @@ def matrix_to_real ( i: int, j: int ) -> tuple[int]:
 def get_image( url: str, img_size = conf.CELL_SIZE ) -> pg.Surface:
   img = pg.image.load(url)
   return pg.transform.scale(img, img_size)
+
+
+'''
+  Return True if the coord passed hit the rect passed
+'''
+def check_rect_collision( coord: tuple[int], rect: pg.Rect ) -> bool:
+  x, y = coord
+  return rect.left <= x < rect.right and \
+         rect.top <= y < rect.bottom
       

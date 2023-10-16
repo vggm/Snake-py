@@ -15,7 +15,7 @@ class InteractiveObject( ABC ):
   
   ''' Return True if the coord in parameter collision with this object '''
   @abstractmethod
-  def check_collision( self, coord: tuple[int] ) -> int:
+  def check_collision( self, coord: tuple[int] ) -> bool:
     pass
   
   ''' 

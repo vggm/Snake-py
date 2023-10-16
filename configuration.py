@@ -46,8 +46,7 @@ class Configuration():
     self.SCORE_ADDITION = 1  
     
     # WINDOW
-    self.window_height = 560
-    self.window_width = 480
+    self.window_width, self.window_height = WindowSize.MEDIUM.value
     
     # SCORE TOPBAR
     self.score_height = self.window_height - self.window_width
