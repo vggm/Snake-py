@@ -36,7 +36,15 @@ class Configuration():
     self.MAX_FOOD = 5
     self.ALEATORY_MAX_FOOD = True
     
-    self.GAME_FPS = 8
+    self.GAME_FPS = 10
+    
+    # SNAKE
+    self.SNAKE_BODY_COLOR = Color.GREEN.value
+    self.APPLE_COLOR = Color.RED.value
+
+    self.SNAKE_START_CELL = [[7,3], [7,2]]
+
+    self.START_SPEED = 1
 
     # if true, when the snake head hit the wall its game over
     # otherwise, the snake head will tp to the other side of the wall
@@ -72,14 +80,6 @@ class Configuration():
 
     self.GAME_OVER_FONT = None # PATH TO CUSTOM FONT FAMILY
     self.GAME_OVER_FONT_SIZE = 100
-    
-    # SNAKE
-    self.SNAKE_BODY_COLOR = Color.GREEN.value
-    self.APPLE_COLOR = Color.RED.value
-
-    self.SNAKE_START_CELL = [[7,3], [7,2]]
-
-    self.START_SPEED = 1
 
     # BACKGROUND
     self.BACKGRAOUND_COLOR = Color.LIGHT_GREEN.value
