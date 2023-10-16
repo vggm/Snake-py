@@ -12,10 +12,10 @@ if __name__ == '__main__':
     start = True
     while start:
       
-      if snake_game.start(): # if return False, player wants to end the game
+      if snake_game.start():  # if return False, player wants to end the game
         start = False
       
-      elif snake_game.game_over(): # if return False, player wants to end the game
+      elif snake_game.game_over():  # if return False, player wants to end the game
         start = False
         
   end_game()

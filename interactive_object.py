@@ -18,10 +18,23 @@ class InteractiveObject( ABC ):
   def check_collision( self, coord: tuple[int] ) -> bool:
     pass
   
+
+class MultipleInteractiveObject(InteractiveObject):
+  def __init__(self, window: Surface) -> None:
+    super().__init__(window)
+  
   ''' 
     Some InteractiveObjects has the function that set a config for the game,
       this method set that conf
   '''
   @abstractmethod
   def set_conf( self ) -> None:
+    pass
+
+  '''
+    Click on a multiple option, has to do internal operations to know what option
+      the user wants 
+  '''
+  @abstractmethod
+  def click_action( self, coord: tuple[int] ) -> None:
     pass

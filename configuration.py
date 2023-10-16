@@ -13,7 +13,7 @@ class WindowSize(Enum):
   LARGE  = (960,1040)
 
 
-class MenuConfiguration():
+class MenuConfiguration:
   def __init__(self) -> None:
     
     # MENU
@@ -30,7 +30,7 @@ class MenuConfiguration():
     self.BUTTON_SIZE = ( self.button_width, self.button_height )
 
 
-class Configuration():
+class Configuration:
   def __init__(self) -> None:
     # GAME OPTIONS
     self.MAX_FOOD = 5
@@ -84,14 +84,25 @@ class Configuration():
     # BACKGROUND
     self.BACKGRAOUND_COLOR = Color.LIGHT_GREEN.value
     
-  def set_small_size(self):
-    self.window_height, self.window_width = WindowSize.SMALL.value
+  def set_window_size( self, option: str ):
+    resolution = WindowSize.LARGE.value
     
-  def set_medium_size(self):
-    self.window_height, self.window_width = WindowSize.MEDIUM.value
-  
-  def set_large_size(self):
-    self.window_height, self.window_width = WindowSize.LARGE.value
+    if option == 'small':
+      resolution = WindowSize.SMALL.value
+    elif option == 'medium':
+      resolution = WindowSize.MEDIUM.value      
+    
+    self.window_width, self.window_height = resolution
+    
+    self.score_height = self.window_height - self.window_width
+    self.score_width = self.window_width
+    self.SCORE_SIZE = (self.score_width, self.score_height)
+    self.screen_width = self.window_width
+    self.screen_height = self.window_height
+    self.SCREEN_SIZE = (self.screen_width, self.screen_height)
+    self.CELL_HEIGHT = (self.screen_height - self.score_height) // self.CELLS_PER_ROW
+    self.CELL_WIDTH = self.screen_width // self.CELLS_PER_ROW
+    self.CELL_SIZE = (self.CELL_WIDTH, self.CELL_HEIGHT)
 
 
 configuration = Configuration()
