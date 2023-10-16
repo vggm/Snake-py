@@ -7,27 +7,34 @@ from random import randint
 from colors import Color
 from sys import exit
 import pygame as pg
-from utils import *
+from utils import matrix_to_real
 
 
 VERTICAL   = ROW = 0
 HORIZONTAL = COL = 1
 
-
+''' Manage the snake behavior '''
 class Snake():
   def __init__(self, window: pg.Surface) -> None:
     self.window = window
 
     self.body = [ position.copy() for position in conf.SNAKE_START_CELL ] # snake body
     
-    self.head = self.body[0]
-    self.tail = self.body[-1]
+    self.head = self.body[0][:]
 
     self.surface = pg.Surface(conf.CELL_SIZE)
     self.surface.fill(conf.SNAKE_BODY_COLOR)
   
   def add( self, position: list[int] ) -> None:
-    self.body.append( position )
+    self.body.insert( 0, position )
+    
+  def delete_last( self ) -> None:
+    self.body.pop()
+    
+  def teleport( self ) -> None:
+    self.head[ROW] %= conf.CELLS_PER_ROW
+    self.head[COL] %= conf.CELLS_PER_ROW
+    self.body[0] = self.head[:]
   
   def draw( self ) ->  None:
     for row, col in self.body:
@@ -36,6 +43,7 @@ class Snake():
       )
 
 
+''' Manage the food behavior '''
 class Foods():
   def __init__(self, window: pg.Surface) -> None:
     self.window = window
@@ -106,7 +114,7 @@ class Score():
     self.window.blit( self.board, conf.SCORE_POSITION )
     self.window.blit( self.score, self.score_rec )
 
-
+''' Manage the main loop and game over screen '''
 class Game():
 
   def __init__( self ) -> None:
@@ -194,31 +202,13 @@ class Game():
             if snake.head[HORIZONTAL] + 1 != snake.body[1][HORIZONTAL]:
               direction = [0,actual_speed]
     
-
-      '''
-        Game Logic
-      '''
-      if food_eaten:
-        tail_position = snake.tail.copy()
-      
-      '''
-        Move the snake cells to simulate the movement.
-        At the beginning, the snake doesnt move until the player
-          make a move 
-      '''
-      if direction[VERTICAL] + direction[HORIZONTAL] != 0:
-        for i in range(len(snake.body)-1, 0, -1):
-          snake.body[i][ROW] = snake.body[i-1][ROW]
-          snake.body[i][COL] = snake.body[i-1][COL]
-      
-      if food_eaten:
-        snake.add( tail_position )
-        snake.tail = snake.body[-1]
-        food_eaten = False
-      
+  
       ''' Snake movement '''
       snake.head[ROW] += direction[VERTICAL]
       snake.head[COL] += direction[HORIZONTAL]
+      
+      if direction[VERTICAL] + direction[HORIZONTAL] != 0:
+        snake.add( snake.head[:] )
       
       '''
         Check head collision
@@ -231,8 +221,7 @@ class Game():
           run = False
         
         else:
-          snake.head[ROW] %= conf.CELLS_PER_ROW
-          snake.head[COL] %= conf.CELLS_PER_ROW
+          snake.teleport()
           
       # collision with his own body: game over
       if snake.head in snake.body[1:]:
@@ -245,6 +234,18 @@ class Game():
         foods.remove( position=snake.head )
         if not foods.generate_food( snake.body ):
           run = False
+      
+            
+      '''
+        Delete last cell from snake body to simulate movement,
+          if the snake has eaten a food, doesnt have to delete the last cell
+      '''
+      if direction[VERTICAL] + direction[HORIZONTAL] != 0:
+      
+        if food_eaten:
+          food_eaten = False 
+        else:
+          snake.delete_last()
     
     return end_cause
   
